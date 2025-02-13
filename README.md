@@ -1,17 +1,37 @@
-# **Setting Up a GPU-Powered Kubernetes Cluster on Google Kubernetes Engine (GKE)**
+# GKE GPU Setup
 
-This guide walks you through creating a **GPU-enabled** GKE cluster, setting up **NVIDIA GPU drivers**, and running GPU workloads.
-
----
+This repository documents the process of setting up a **Google Kubernetes Engine (GKE) cluster with GPU support**, installing the **NVIDIA GPU Operator**, and running **GPU-accelerated workloads**.
 
 ## **1. Prerequisites**
+Before starting, ensure you have:
 
-Ensure you have:
-- A **Google Cloud Project** ([Create one](https://console.cloud.google.com/))
-- The **Google Cloud CLI (`gcloud`)** installed ([Install it](https://cloud.google.com/sdk/docs/install))
-- Enabled the required APIs:
-  ```bash
-  gcloud services enable container.googleapis.com compute.googleapis.com
+- A **Google Cloud** project with billing enabled.
+- The **gcloud CLI** installed and initialized.
+- Requested **GPU quota** for the required region (default limits are often **0**).
+  - Check your quota:
+    ```bash
+    gcloud compute regions describe southamerica-east1 | grep -i quota
+    ```
+  - If GPU quota is `0`, request an increase in the **GCP Console → IAM & Admin → Quotas**.
+
+## **2. Create a GKE Cluster with GPU Support**
+We create a **regional** cluster with **GPU-ready** configurations.
+
+```bash
+gcloud container clusters create demo-cluster1 \
+    --region=southamerica-east1 \
+    --machine-type=n1-standard-4 \
+    --accelerator type=nvidia-tesla-t4,count=1 \
+    --num-nodes=1 \
+    --release-channel=regular \
+    --image-type=UBUNTU_CONTAINERD \
+    --disk-type=pd-standard \
+    --disk-size=100 \
+    --enable-ip-alias \
+    --metadata disable-legacy-endpoints=true \
+    --enable-autorepair \
+    --enable-autoupgrade
+```
 ## **2. Create a GKE Cluster with GPU Nodes**
 ```bash
 gcloud container clusters create gke-gpu-cluster \
@@ -28,71 +48,101 @@ gcloud container clusters create gke-gpu-cluster \
     --enable-autoscaling --min-nodes=1 --max-nodes=3
 ```
 
-## **3. Create a GPU Node Pool**
+## **3. Install NVIDIA GPU Operator
+
+The NVIDIA GPU Operator handles driver installation, monitoring, and device plugins.
+
+Add NVIDIA Helm Repo
+
 ```bash
-gcloud container node-pools create gpu-node-pool \
-    --cluster=gke-gpu-cluster \
-    --region=us-central1 \
-    --machine-type=n1-standard-4 \
-    --accelerator type=nvidia-tesla-t4,count=1 \
-    --num-nodes=1 \
-    --disk-size=100 \
-    --disk-type=pd-balanced \
-    --image-type=COS_CONTAINERD \
-    --enable-autoscaling --min-nodes=0 --max-nodes=3 \
-    --node-labels=gpu-node=true \
-    --node-taints=nvidia.com/gpu=present:NoSchedule \
-    --metadata=disable-legacy-endpoints=true \
-    --scopes=https://www.googleapis.com/auth/cloud-platform
+helm repo add nvidia https://helm.ngc.nvidia.com/nvidia \
+  && helm repo update
 ```
 
-## **4.  Install NVIDIA CUDA Drivers**
-```bash
-kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/main/daemonset.yaml
-```
-Ensure the Daemon is working
-```bash
-kubectl get daemonsets -n kube-system | grep nvidia
-```
-## **5. Deploy a GPU Job**
+Install the Operator
 
-Create a file with the below:
+```bash
+helm install gpu-operator nvidia/gpu-operator \
+    --create-namespace --namespace gpu-operator
+```
 
-```yaml
+Verify GPU Operator Pods
+
+```bash
+kubectl get pods -n gpu-operator
+```
+
+Expected Output:
+```bash
+NAME                                           READY   STATUS
+gpu-operator-xxxxxx                            1/1     Running
+nvidia-driver-daemonset-xxxxx                  1/1     Running
+nvidia-device-plugin-daemonset-xxxxx           1/1     Running
+...
+```
+## 4. Verify GPU Availability in Kubernetes
+
+Once the GPU Operator is running, verify that the node is GPU-enabled.
+```
+kubectl describe node | grep -i gpu
+```
+Result:
+```
+nvidia.com/gpu.count=1
+nvidia.com/gpu.product=Tesla-T4
+nvidia.com/gpu.present=true
+```
+Check NVIDIA-SMI inside the Cluster
+```
+kubectl run gpu-test --rm -it --restart=Never --image=nvidia/cuda:12.2.2-base-ubuntu22.04 -- nvidia-smi
+```
+Expected Output:
+```
++---------------------------+
+| GPU  Name        Memory   |
+| Tesla T4        15360MiB  |
++---------------------------+
+```
+## 5. Running a GPU-Accelerated Job
+
+Deploy a TensorFlow GPU Job:
+
+```
+cat <<EOF | kubectl apply -f -
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: gpu-job
+  name: tensorflow-gpu-test
 spec:
   template:
     spec:
       restartPolicy: Never
-      nodeSelector:
-        cloud.google.com/gke-accelerator: "nvidia-tesla-t4"
-      tolerations:
-        - key: "nvidia.com/gpu"
-          operator: "Exists"
-          effect: "NoSchedule"
       containers:
-      - name: gpu-container
-        image: nvidia/cuda:11.0-base
-        command: ["nvidia-smi"]
+      - name: tensorflow-gpu
+        image: tensorflow/tensorflow:latest-gpu
+        command: ["python", "-c"]
+        args:
+          - |
+            import tensorflow as tf
+            print("Num GPUs Available:", len(tf.config.experimental.list_physical_devices('GPU')))
         resources:
           limits:
             nvidia.com/gpu: 1
+EOF
 ```
-Apply it to your cluster:
-```bash
-kubectl apply -f filename.yaml
+Check job logs:
 ```
-Check job usage:
-```bash
-kubectl get pods
-kubectl logs -l job-name=gpu-job
+kubectl logs job/tensorflow-gpu-test
 ```
+Results should looks something like:
+```
+Num GPUs Available: 1
+```
+## 7. Next Steps
+Now that your GPU cluster is operational, you can:
 
-## **6. Verify GPU Usage**
-```bash
-kubectl describe node | grep -A10 Capacity
-kubectl get pods -n kube-system
-```
+Run more GPU-accelerated jobs (PyTorch, TensorFlow, CUDA workloads).
+Scale the cluster by adding more GPU nodes.
+Convert this manual GPU setup into an automated infrastructure deployment.
+
+
