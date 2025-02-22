@@ -7,3 +7,6 @@ disk_size    = 100
 disk_type    = "pd-standard"
 min_nodes    = 0
 max_nodes    = 2
+project_id = "your-gcp-project-id"
+credentials_file = "./gcp-key.json"
+

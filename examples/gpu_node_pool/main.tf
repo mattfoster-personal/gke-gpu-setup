@@ -1,12 +1,26 @@
+module "gke_cluster" {
+  source       = "../../Interview/modules/cluster"
+  cluster_name = "demo-cluster1"
+  region       = "southamerica-east1"
+  project_id   = "gothic-province-450601-c2"
+}
+
 module "gpu_node_pool" {
-  source        = "../../modules/gpu_node_pool"
-  cluster_name  = "interview-cluster"
-  region        = "us-central1"
-  node_count    = 1
-  gpu_type      = "nvidia-tesla-t4"
-  gpu_count     = 1
-  disk_size     = 100
-  disk_type     = "pd-standard"
-  min_nodes     = 0
-  max_nodes     = 2
+  source         = "../../Interview/modules/gpu_node_pool"
+  node_pool_name = "gpu-node-pool-test"
+  cluster_name   = "demo-cluster1"
+  location       = "southamerica-east1-c"
+  node_count     = 1
+  machine_type   = "g2-standard-4"
+  # gpu_type       = "nvidia-h100-80gb" # Default
+
+  # Uncomment this line to switch to Tesla T4
+   gpu_type       = "nvidia-tesla-t4"
+
+  gpu_count      = 1
+  node_tags      = ["gpu-node"]
+  disk_size_gb   = 100
+  disk_type      = "pd-ssd"
+  min_node_count = 0
+  max_node_count = 5
 }

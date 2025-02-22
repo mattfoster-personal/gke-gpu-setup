@@ -1,26 +1,28 @@
 resource "google_container_node_pool" "gpu_pool" {
-  name       = "${var.cluster_name}-gpu-pool"
+  name       = var.node_pool_name
   cluster    = var.cluster_name
-  location   = var.region
+  location   = var.location
   node_count = var.node_count
+  project    = "gothic-province-450601-c2" # Explicitly define project
 
   node_config {
-    machine_type = "n1-standard-4"
-    accelerators {
-      accelerator_count = var.gpu_count
-      accelerator_type  = var.gpu_type
+    machine_type = var.machine_type
+    oauth_scopes = var.oauth_scopes
+
+    # Enable GPUs (Default: H100)
+    guest_accelerator {
+      type  = var.gpu_type
+      count = var.gpu_count
     }
 
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/cloud-platform"
-    ]
+    # Alternative Tesla T4 (uncomment to switch)
+    # guest_accelerator {
+    #   type  = "nvidia-tesla-t4"
+    #   count = 1
+    # }
 
     metadata = {
       disable-legacy-endpoints = "true"
-    }
-
-    labels = {
-      gpu-node = "true"
     }
 
     taint {
@@ -29,18 +31,31 @@ resource "google_container_node_pool" "gpu_pool" {
       effect = "NO_SCHEDULE"
     }
 
-    image_type = "COS_CONTAINERD"
-    disk_size_gb = var.disk_size
+    labels = {
+      role = "gpu-node"
+    }
+
+    tags = var.node_tags
+
+    disk_size_gb = var.disk_size_gb
     disk_type    = var.disk_type
+
+    workload_metadata_config {
+      mode = "GKE_METADATA"
+    }
+  }
+
+  management {
+    auto_repair  = true
+    auto_upgrade = true
   }
 
   autoscaling {
-    min_node_count = var.min_nodes
-    max_node_count = var.max_nodes
+    min_node_count = var.min_node_count
+    max_node_count = var.max_node_count
   }
 
-  upgrade_settings {
-    max_surge       = 1
-    max_unavailable = 0
+  lifecycle {
+    ignore_changes = [node_count]
   }
 }

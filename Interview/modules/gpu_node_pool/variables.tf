@@ -1,51 +1,80 @@
+variable "node_pool_name" {
+  description = "The name of the GPU node pool"
+  type        = string
+}
+
 variable "cluster_name" {
   description = "The name of the GKE cluster"
   type        = string
 }
 
-variable "region" {
-  description = "The GCP region where the node pool is deployed"
+variable "location" {
+  description = "The region or zone for the node pool"
   type        = string
 }
 
 variable "node_count" {
-  description = "The number of GPU nodes"
+  description = "Number of nodes in the pool"
   type        = number
   default     = 1
 }
 
-variable "gpu_type" {
-  description = "The type of GPU to use"
+variable "machine_type" {
+  description = "Machine type for GPU nodes"
   type        = string
-  default     = "nvidia-tesla-t4"
+  default     = "g2-standard-4"
 }
+
+# variable "gpu_type" {
+#  description = "GPU type for nodes"
+#  type        = string
+#  default     = "nvidia-h100-80gb"
+# }
+
+ variable "gpu_type" {
+   description = "GPU type for nodes"
+   type        = string
+   default     = "nvidia-tesla-t4"
+ }
 
 variable "gpu_count" {
-  description = "The number of GPUs per node"
+  description = "Number of GPUs per node"
   type        = number
   default     = 1
 }
 
-variable "disk_size" {
-  description = "Disk size for each node"
+variable "oauth_scopes" {
+  description = "OAuth scopes for node permissions"
+  type        = list(string)
+  default     = ["https://www.googleapis.com/auth/cloud-platform"]
+}
+
+variable "node_tags" {
+  description = "Tags for the node instances"
+  type        = list(string)
+  default     = []
+}
+
+variable "disk_size_gb" {
+  description = "Size of the node's boot disk"
   type        = number
   default     = 100
 }
 
 variable "disk_type" {
-  description = "Disk type for the GPU node"
+  description = "Type of the node's boot disk"
   type        = string
   default     = "pd-standard"
 }
 
-variable "min_nodes" {
+variable "min_node_count" {
   description = "Minimum number of GPU nodes in the pool"
   type        = number
   default     = 0
 }
 
-variable "max_nodes" {
+variable "max_node_count" {
   description = "Maximum number of GPU nodes in the pool"
   type        = number
-  default     = 3
+  default     = 5
 }
