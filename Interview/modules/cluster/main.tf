@@ -14,7 +14,7 @@ resource "google_container_cluster" "gke_cluster" {
   initial_node_count       = 1
 
   # Enable metadata server explicitly
-  enable_kubernetes_alpha = true
+  enable_kubernetes_alpha = false
 
   # Enable security settings for Workload Identity
   security_posture_config {

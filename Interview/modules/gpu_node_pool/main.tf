@@ -1,13 +1,20 @@
 resource "google_container_node_pool" "gpu_pool" {
   name       = var.node_pool_name
-  cluster    = var.cluster_name
+  # cluster    = var.cluster_name
+  cluster    = "demo-cluster2"
   location   = var.location
   node_count = var.node_count
   project    = "gothic-province-450601-c2" # Explicitly define project
 
+  depends_on = [var.cluster_name]
+
   node_config {
     machine_type = var.machine_type
     oauth_scopes = var.oauth_scopes
+
+#    workload_metadata_config {
+#      mode = "GKE_METADATA" 
+#    }
 
     # Enable GPUs (Default: H100)
     guest_accelerator {
@@ -39,10 +46,6 @@ resource "google_container_node_pool" "gpu_pool" {
 
     disk_size_gb = var.disk_size_gb
     disk_type    = var.disk_type
-
-    workload_metadata_config {
-      mode = "GKE_METADATA"
-    }
   }
 
   management {

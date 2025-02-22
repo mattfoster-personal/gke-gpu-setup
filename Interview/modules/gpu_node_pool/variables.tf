@@ -22,7 +22,7 @@ variable "node_count" {
 variable "machine_type" {
   description = "Machine type for GPU nodes"
   type        = string
-  default     = "g2-standard-4"
+  default     = "n1-standard-4"
 }
 
 # variable "gpu_type" {

@@ -12,3 +12,9 @@ variable "project_id" {
   description = "GCP Project ID"
   type        = string
 }
+
+variable "workload_pool" {
+  description = "Workload Identity Pool for GKE"
+  type        = string
+  default     = ""
+}

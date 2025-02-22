@@ -14,7 +14,7 @@ provider "google" {
 
 module "gpu_node_pool" {
   source       = "./modules/gpu_node_pool"
-  cluster_name = var.cluster_name
+  cluster_name = module.cluster.cluster_name
   node_count   = var.node_count
 }
 
