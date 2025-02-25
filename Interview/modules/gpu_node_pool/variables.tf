@@ -78,3 +78,8 @@ variable "max_node_count" {
   type        = number
   default     = 5
 }
+
+variable "cluster_dependency" {
+  description = "Reference to the GKE cluster resource to enforce dependency ordering"
+  type        = any
+}

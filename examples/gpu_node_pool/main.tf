@@ -1,14 +1,19 @@
 module "gke_cluster" {
   source       = "../../Interview/modules/cluster"
-  cluster_name = "demo-cluster2"
+  cluster_name = "demo-cluster3"
   region       = "southamerica-east1-c"
   project_id   = "gothic-province-450601-c2"
 }
 
+module "gpu_operator" {
+  source = "../../Interview/modules/gpu_operator"
+}
+
 module "gpu_node_pool" {
   source         = "../../Interview/modules/gpu_node_pool"
-  node_pool_name = "gpu-node-pool-test"
-  cluster_name   = "demo-cluster2"
+  cluster_dependency = module.gke_cluster.cluster_resource
+  node_pool_name = "gpu-node-pool-test1"
+  cluster_name  = var.cluster_name  # Pass the cluster name
   location       = "southamerica-east1-c"
   node_count     = 1
   machine_type   = "n1-standard-4"

@@ -1,12 +1,13 @@
 resource "google_container_node_pool" "gpu_pool" {
   name       = var.node_pool_name
-  # cluster    = var.cluster_name
-  cluster    = "demo-cluster2"
+  cluster    = var.cluster_name
+  #cluster    = "demo-cluster3"
   location   = var.location
   node_count = var.node_count
   project    = "gothic-province-450601-c2" # Explicitly define project
+  #cluster_dependency = module.gke_cluster.cluster_resource
 
-  depends_on = [var.cluster_name]
+  depends_on = [var.cluster_dependency]
 
   node_config {
     machine_type = var.machine_type

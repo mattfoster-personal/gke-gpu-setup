@@ -1,4 +1,4 @@
-cluster_name = "interview-cluster"
+cluster_name = "demo-cluster3"
 region       = "us-central1"
 node_count   = 1
 gpu_type     = "nvidia-tesla-t4"
