@@ -6,7 +6,9 @@ module "gke_cluster" {
 }
 
 module "gpu_operator" {
-  source = "../../Interview/modules/gpu_operator"
+  source = "../../Interview/modules/gpu-operator"
+  cluster_endpoint       = module.gke_cluster.cluster_endpoint
+  cluster_ca_certificate = module.gke_cluster.cluster_ca_certificate
 }
 
 module "gpu_node_pool" {
