@@ -1,10 +1,31 @@
 # Helm Release for NVIDIA GPU Operator
 resource "helm_release" "nvidia_gpu_operator" {
+  count      = length(var.cluster_dependency) > 0 ? 1 : 0
   name       = "gpu-operator"
   repository = "https://nvidia.github.io/gpu-operator"
   chart      = "gpu-operator"
   namespace  = "gpu-operator"
   create_namespace = true
+  #depends_on = [var.cluster_dependency]
+  depends_on = [var.cluster_dependency, var.node_pool_dependency]
+
+  set {
+    name  = "imagePullSecrets[0].name"
+    value = "nvidia-secret"
+  }
+
+  set {
+    name  = "tolerations[0].key"
+    value = "nvidia.com/gpu"
+  }
+  set {
+    name  = "tolerations[0].operator"
+    value = "Exists"
+  }
+  set {
+    name  = "tolerations[0].effect"
+    value = "NoSchedule"
+  }
 
   set {
     name  = "operator.defaultRuntime"

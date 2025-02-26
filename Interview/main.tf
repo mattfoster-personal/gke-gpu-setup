@@ -9,6 +9,12 @@ terraform {
 
 module "gpu_operator" {
   source = "./modules/gpu_operator"
+  cluster_endpoint       = module.gke_cluster.endpoint
+  cluster_ca_certificate = module.gke_cluster.cluster_ca_certificate
+  # node_pool_name         = module.gpu_node_pool.gpu_pool.name
+  # cluster_name           = module.gke_cluster.gke_cluster.name
+
+  depends_on = [module.gke_cluster, module.gpu_node_pool] 
 }
 
 provider "google" {
@@ -18,21 +24,26 @@ provider "google" {
 
 module "gke_cluster" {
   source   = "./modules/cluster"
-  location = var.location
+  cluster_name = "demo-cluster3"
+  project_id   = "gothic-province-450601-c2"
+  region       = "southamerica-east1"
 }
 
 module "gpu_node_pool" {
-  source       = "./modules/gpu_node_pool"
-  cluster_name  = module.gke_cluster.cluster_name  # Correctly reference the cluster
   node_count   = var.node_count
+  source             = "./modules/gpu_node_pool"
+  cluster_name       = module.gke_cluster.cluster_name
+  node_pool_name     = "gpu-node-pool-test1"
+  cluster_dependency = module.gke_cluster
+  location = "test"
 }
 
-module "tenant_a" {
-  source      = "./modules/tenant"
-  tenant_name = "tenant-a"
-}
+# module "tenant_a" {
+#   source      = "./modules/tenant"
+#   tenant_name = "tenant-a"
+# }
 
-module "tenant_b" {
-  source      = "./modules/tenant"
-  tenant_name = "tenant-b"
-}
+#module "tenant_b" {
+#  source      = "./modules/tenant"
+#  tenant_name = "tenant-b"
+#}

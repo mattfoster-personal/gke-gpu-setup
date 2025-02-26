@@ -70,7 +70,7 @@ variable "disk_type" {
 variable "min_node_count" {
   description = "Minimum number of GPU nodes in the pool"
   type        = number
-  default     = 0
+  default     = 1
 }
 
 variable "max_node_count" {

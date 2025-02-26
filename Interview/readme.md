@@ -77,3 +77,5 @@
 - Can they properly lock down tenant boundaries with RBAC?
 - Do they understand GPU scheduling fairness across tenants?
 - Can they troubleshoot Terraform-based security misconfigurations?
+
+## Part 5: Debugging through observability - Prometheus (15-20 mins)

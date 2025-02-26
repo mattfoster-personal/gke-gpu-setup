@@ -9,8 +9,8 @@ resource "google_container_cluster" "gke_cluster" {
   
   deletion_protection = false
 
-  # Remove the default node pool since we'll create our own
-  remove_default_node_pool = true
+  # # Remove the default node pool since we'll create our own
+  # remove_default_node_pool = true
   initial_node_count       = 1
 
   # Enable metadata server explicitly

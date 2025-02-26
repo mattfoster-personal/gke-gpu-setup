@@ -9,6 +9,8 @@ module "gpu_operator" {
   source = "../../Interview/modules/gpu-operator"
   cluster_endpoint       = module.gke_cluster.cluster_endpoint
   cluster_ca_certificate = module.gke_cluster.cluster_ca_certificate
+  cluster_dependency = module.gke_cluster.cluster_resource
+  node_pool_dependency = module.gpu_node_pool
 }
 
 module "gpu_node_pool" {
@@ -28,6 +30,6 @@ module "gpu_node_pool" {
   node_tags      = ["gpu-node"]
   disk_size_gb   = 100
   disk_type      = "pd-ssd"
-  min_node_count = 0
+  min_node_count = 1
   max_node_count = 5
 }

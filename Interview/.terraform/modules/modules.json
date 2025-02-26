@@ -1,0 +1,1 @@
+{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"gke_cluster","Source":"./modules/cluster","Dir":"modules/cluster"},{"Key":"gpu_node_pool","Source":"./modules/gpu_node_pool","Dir":"modules/gpu_node_pool"},{"Key":"gpu_operator","Source":"./modules/gpu_operator","Dir":""}]}
