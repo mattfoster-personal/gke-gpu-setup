@@ -1,6 +1,6 @@
 # Helm Release for NVIDIA GPU Operator
 resource "helm_release" "nvidia_gpu_operator" {
-  count      = length(var.cluster_dependency) > 0 ? 1 : 0
+  #count      = length(var.cluster_dependency) > 0 ? 1 : 0 #split up applys instead can't figure how to make work
   name       = "gpu-operator"
   repository = "https://nvidia.github.io/gpu-operator"
   chart      = "gpu-operator"
@@ -63,7 +63,7 @@ resource "kubernetes_daemonset" "nvidia_driver_installer" {
 
         container {
           name  = "nvidia-driver-installer"
-          image = "nvcr.io/nvidia/cuda-driver:535.113.01-ubuntu22.04"
+          image = "nvcr.io/nvidia/cuda:12.1.1-runtime-ubuntu22.04"
 
           security_context {
             privileged = true

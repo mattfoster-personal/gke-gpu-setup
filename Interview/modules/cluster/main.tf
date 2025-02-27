@@ -29,3 +29,16 @@ resource "google_container_cluster" "gke_cluster" {
   network    = "default"
   subnetwork = "default"
 }
+resource "google_compute_firewall" "allow_k8s_api_helm" {
+  name    = "allow-k8s-api-helm"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["443", "6443", "10250-10259"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+
+  description = "Allow Kubernetes API and Helm communication"
+}

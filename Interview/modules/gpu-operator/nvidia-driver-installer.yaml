@@ -18,7 +18,7 @@ spec:
         effect: "NoSchedule"
       containers:
       - name: nvidia-driver-installer
-        image: "nvcr.io/nvidia/cuda-driver:535.113.01-ubuntu22.04"
+        image: "nvcr.io/nvidia/cuda:12.1.1-runtime-ubuntu22.04"
         securityContext:
           privileged: true
         volumeMounts:
