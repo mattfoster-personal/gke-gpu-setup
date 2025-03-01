@@ -1,39 +1,3 @@
-# Helm Release for NVIDIA GPU Operator
-resource "helm_release" "nvidia_gpu_operator" {
-  #count      = length(var.cluster_dependency) > 0 ? 1 : 0 #split up applys instead can't figure how to make work
-  name       = "gpu-operator"
-  repository = "https://nvidia.github.io/gpu-operator"
-  chart      = "gpu-operator"
-  namespace  = "gpu-operator"
-  create_namespace = true
-  #depends_on = [var.cluster_dependency]
-  depends_on = [var.cluster_dependency, var.node_pool_dependency]
-
-  set {
-    name  = "imagePullSecrets[0].name"
-    value = "nvidia-secret"
-  }
-
-  set {
-    name  = "tolerations[0].key"
-    value = "nvidia.com/gpu"
-  }
-  set {
-    name  = "tolerations[0].operator"
-    value = "Exists"
-  }
-  set {
-    name  = "tolerations[0].effect"
-    value = "NoSchedule"
-  }
-
-  set {
-    name  = "operator.defaultRuntime"
-    value = "containerd"
-  }
-}
-
-# Kubernetes DaemonSet for NVIDIA Driver Installer
 resource "kubernetes_daemonset" "nvidia_driver_installer" {
   metadata {
     name      = "nvidia-driver-installer"
@@ -55,30 +19,36 @@ resource "kubernetes_daemonset" "nvidia_driver_installer" {
       }
 
       spec {
+        node_selector = {
+          "cloud.google.com/gke-accelerator" = "nvidia-tesla-t4"  # ✅ Ensures it runs only on GPU nodes
+        }
+
         toleration {
           key      = "nvidia.com/gpu"
           operator = "Exists"
           effect   = "NoSchedule"
         }
 
+        host_pid = true  # ✅ Required for installing kernel modules
+
         container {
           name  = "nvidia-driver-installer"
-          image = "nvcr.io/nvidia/cuda:12.1.1-runtime-ubuntu22.04"
+          image = "nvcr.io/nvidia/driver:535.113.01-ubuntu22.04"  # ✅ Latest NVIDIA driver for Ubuntu 22.04
 
           security_context {
-            privileged = true
+            privileged = true  # ✅ Must be inside security_context
           }
 
           volume_mount {
-            mount_path = "/host"
             name       = "host-root"
+            mount_path = "/host"
           }
         }
 
         volume {
           name = "host-root"
           host_path {
-            path = "/"
+            path = "/"  # ✅ Required to modify kernel modules
           }
         }
       }

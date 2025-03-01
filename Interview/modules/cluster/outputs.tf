@@ -16,7 +16,3 @@ output "cluster_ca_certificate" {
   description = "The cluster CA certificate"
   value       = google_container_cluster.gke_cluster.master_auth.0.cluster_ca_certificate
 }
-
-output "cluster_dependency" {
-  value = google_container_cluster.gke_cluster
-}

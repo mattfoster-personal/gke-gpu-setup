@@ -3,6 +3,14 @@ module "gke_cluster" {
   cluster_name = "demo-cluster3"
   region       = "southamerica-east1-c"
   project_id   = "gothic-province-450601-c2"
+  # project_id   = "ai-research-e44f"
+  network_name = module.gke_network.network_name
+  subnet_name = module.gke_network.subnet_name
+}
+
+module "gke_network" {
+  source = "../../Interview/modules/network"
+  location = "southamerica-east1-c"
 }
 
 module "gpu_operator" {
@@ -33,3 +41,4 @@ module "gpu_node_pool" {
   min_node_count = 1
   max_node_count = 5
 }
+

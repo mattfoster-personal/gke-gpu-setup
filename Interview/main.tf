@@ -26,6 +26,7 @@ module "gke_cluster" {
   source   = "./modules/cluster"
   cluster_name = "demo-cluster3"
   project_id   = "gothic-province-450601-c2"
+  # project_id   = "ai-research-e44f"
   region       = "southamerica-east1"
 }
 

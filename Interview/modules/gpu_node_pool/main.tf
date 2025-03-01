@@ -1,54 +1,37 @@
-resource "google_container_node_pool" "gpu_pool" {
+resource "google_container_node_pool" "gpu_node_pool" {
   name       = var.node_pool_name
   cluster    = var.cluster_name
-  node_count = var.node_count
-  project    = "gothic-province-450601-c2" # Explicitly define project for now
-
-  depends_on = [var.cluster_dependency]
+  location   = var.location
+  node_count = 1
 
   node_config {
     machine_type = var.machine_type
-    oauth_scopes = var.oauth_scopes
+    disk_type    = var.disk_type
+    disk_size_gb = var.disk_size_gb
+    image_type = "UBUNTU_CONTAINERD"
 
-#    workload_metadata_config {
-#      mode = "GKE_METADATA" 
-#    }
-
-    # Enable GPUs (Default: H100)
+    # GPU configuration
     guest_accelerator {
       type  = var.gpu_type
       count = var.gpu_count
+
+    gpu_driver_installation_config {
+        gpu_driver_version = "DEFAULT"  # Ensures NVIDIA drivers are installed
+      }
     }
 
-    # Alternative Tesla T4 (uncomment to switch)
-    # guest_accelerator {
-    #   type  = "nvidia-tesla-t4"
-    #   count = 1
-    # }
+    # Node labels
+    labels = {
+      "gke-no-default-nvidia-gpu-device-plugin" = "true"
+    }
 
+    # Metadata
     metadata = {
       disable-legacy-endpoints = "true"
     }
 
-    taint {
-      key    = "nvidia.com/gpu"
-      value  = "present"
-      effect = "NO_SCHEDULE"
-    }
-
-    labels = {
-      role = "gpu-node"
-    }
-
+    # Tags
     tags = var.node_tags
-
-    disk_size_gb = var.disk_size_gb
-    disk_type    = var.disk_type
-  }
-
-  management {
-    auto_repair  = true
-    auto_upgrade = true
   }
 
   autoscaling {
@@ -56,7 +39,20 @@ resource "google_container_node_pool" "gpu_pool" {
     max_node_count = var.max_node_count
   }
 
+  management {
+    auto_upgrade = true
+    auto_repair  = true
+  }
+
+  # Enable GPU-specific features
+  upgrade_settings {
+    max_surge       = 1
+    max_unavailable = 0
+  }
+
+  depends_on = [var.cluster_dependency]
+    # Ensure Terraform ignores GPU node pool changes
   lifecycle {
-    ignore_changes = [node_count]
+    ignore_changes = [node_count, autoscaling]
   }
 }
