@@ -2,8 +2,8 @@ module "gke_cluster" {
   source       = "../../Interview/modules/cluster"
   cluster_name = "demo-cluster3"
   region       = "southamerica-east1-c"
-  project_id   = "gothic-province-450601-c2"
-  # project_id   = "ai-research-e44f"
+  #project_id   = "gothic-province-450601-c2"
+  project_id   = "ai-research-e44f"
   network_name = module.gke_network.network_name
   subnet_name = module.gke_network.subnet_name
 }
@@ -19,6 +19,7 @@ module "gpu_operator" {
   cluster_ca_certificate = module.gke_cluster.cluster_ca_certificate
   cluster_dependency = module.gke_cluster.cluster_resource
   node_pool_dependency = module.gpu_node_pool
+  network_name = module.gke_network.network_name
 }
 
 module "gpu_node_pool" {

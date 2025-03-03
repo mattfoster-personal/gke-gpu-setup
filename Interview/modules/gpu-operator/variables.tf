@@ -17,3 +17,8 @@ variable "node_pool_dependency" {
   description = "Ensures the GPU node pool is created before deploying GPU Operator"
   type        = any
 }
+
+variable "network_name" {
+  description = "Name of the GKE network"
+  type        = string
+}
