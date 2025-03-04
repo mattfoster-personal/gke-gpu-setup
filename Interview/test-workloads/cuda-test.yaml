@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cuda-test
+spec:
+  ttlSecondsAfterFinished: 3600  # Keep job record for 1 hour
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-tesla-t4
+      tolerations:
+      - key: "nvidia.com/gpu"
+        operator: "Exists"
+        effect: "NoSchedule"
+      containers:
+      - name: cuda-test
+        image: nvidia/cuda:12.1.0-cudnn8-devel-ubuntu20.04
+        command:
+          - /bin/sh
+          - -c
+        args: #you can access this job with kubectl exec -it cuda-test-yourpodname -- bash and run things like nvidia-smi
+          - |
+            echo "Pod started. You can now exec into it to run GPU workloads.";
+            tail -f /dev/null  # Keep the container running
