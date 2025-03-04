@@ -2,7 +2,7 @@ resource "google_container_node_pool" "gpu_node_pool" {
   name       = var.node_pool_name
   cluster    = var.cluster_name
   location   = var.location
-  node_count = 1
+  node_count = 2 # todo: variable
 
   node_config {
     machine_type = var.machine_type
@@ -52,7 +52,7 @@ resource "google_container_node_pool" "gpu_node_pool" {
 
   depends_on = [var.cluster_dependency]
     # Ensure Terraform ignores GPU node pool changes
-  lifecycle {
-    ignore_changes = [node_count, autoscaling]
-  }
+  # lifecycle {
+  #   ignore_changes = [node_count, autoscaling]
+  # }
 }

@@ -28,18 +28,25 @@ module "gpu_node_pool" {
   node_pool_name = "gpu-node-pool-test1"
   cluster_name  = var.cluster_name  # Pass the cluster name
   location       = "southamerica-east1-c"
-  node_count     = 1
+  node_count     = 2
   machine_type   = "n1-standard-4"
   # gpu_type       = "nvidia-h100-80gb" # Default
 
   # Uncomment this line to switch to Tesla T4
    gpu_type       = "nvidia-tesla-t4"
 
-  gpu_count      = 1
+  gpu_count      = 2
   node_tags      = ["gpu-node"]
   disk_size_gb   = 100
   disk_type      = "pd-ssd"
-  min_node_count = 1
+  min_node_count = 2
   max_node_count = 5
 }
 
+module "observability" {
+  source = "../../Interview/modules/observability"
+  cluster_endpoint       = module.gke_cluster.cluster_endpoint
+  cluster_ca_certificate = module.gke_cluster.cluster_ca_certificate
+  monitoring_namespace      = "observability"
+  gpu_monitoring_namespace  = "gpu-observability"
+}

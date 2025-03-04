@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: multi-gpu-job
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        cloud.google.com/gke-accelerator: "nvidia-tesla-t4"
+      containers:
+      - name: tensorflow-multi-gpu
+        image: tensorflow/tensorflow:latest-gpu
+        command: ["python", "-c"]
+        args:
+          - |
+            import tensorflow as tf
+            strategy = tf.distribute.MirroredStrategy()
+            print(f"GPUs available: {strategy.num_replicas_in_sync}")
+        resources:
+          limits:
+            nvidia.com/gpu: 2  # Request 2 GPUs (1 per node)

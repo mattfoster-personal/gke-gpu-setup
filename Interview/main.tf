@@ -38,13 +38,3 @@ module "gpu_node_pool" {
   cluster_dependency = module.gke_cluster
   location = "test"
 }
-
-# module "tenant_a" {
-#   source      = "./modules/tenant"
-#   tenant_name = "tenant-a"
-# }
-
-#module "tenant_b" {
-#  source      = "./modules/tenant"
-#  tenant_name = "tenant-b"
-#}
