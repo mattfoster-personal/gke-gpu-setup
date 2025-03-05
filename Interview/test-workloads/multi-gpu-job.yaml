@@ -1,40 +1,54 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: multi-gpu-stress
+  name: multi-gpu-max
 spec:
-  completions: 1
-  parallelism: 1
+  completions: 2
+  parallelism: 2 
   template:
     spec:
       restartPolicy: Never
       nodeSelector:
         cloud.google.com/gke-accelerator: "nvidia-tesla-t4"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cloud.google.com/gke-accelerator
+                operator: In
+                values:
+                - "nvidia-tesla-t4"
       containers:
-      - name: tensorflow-gpu-benchmark
-        image: tensorflow/tensorflow:latest-gpu
+      - name: tensorflow-gpu-max-1
+        image: tensorflow/tensorflow:2.15.0-gpu
         command: ["python", "-c"]
         args:
           - |
             import tensorflow as tf
             import time
-            
+
             strategy = tf.distribute.MirroredStrategy()
             print(f"GPUs available: {strategy.num_replicas_in_sync}")
 
-            # Create large matrices for multiplication
-            size = 10000  # 10,000 x 10,000 matrix
+            size = 25000  # 25,000 x 25,000 matrix
+            iterations = 750
+
+            print(f"Starting {iterations} matrix multiplications of {size}x{size}...")
+
             a = tf.random.normal([size, size])
             b = tf.random.normal([size, size])
 
-            print("Starting matrix multiplication benchmark...")
             start_time = time.time()
-
-            for _ in range(100):  # Run multiple iterations
+            for i in range(iterations):
                 c = tf.matmul(a, b)
+                if i % 50 == 0:
+                    print(f"Iteration {i}/{iterations} complete...")
 
             end_time = time.time()
-            print(f"Matrix multiplication complete in {end_time - start_time:.2f} seconds")
+            print(f"Finished {iterations} iterations in {end_time - start_time:.2f} seconds")
         resources:
           limits:
-            nvidia.com/gpu: 2  # Use both GPUs
+            nvidia.com/gpu: 2  # Each job uses 2 GPUs
+
+      
