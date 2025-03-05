@@ -32,3 +32,31 @@ resource "helm_release" "prometheus_operator" {
     value = "true"
   }
 }
+resource "kubernetes_manifest" "dcgm_servicemonitor" {
+  manifest = {
+    apiVersion = "monitoring.coreos.com/v1"
+    kind       = "ServiceMonitor"
+    metadata = {
+      name      = "dcgm-exporter"
+      namespace = var.monitoring_namespace
+      labels = {
+        release = "prometheus"
+      }
+    }
+    spec = {
+      selector = {
+        matchLabels = {
+          app = "nvidia-dcgm-exporter" 
+        }
+      }
+      namespaceSelector = {
+        matchNames = ["gpu-operator"]
+      }
+      endpoints = [{
+        port     = "gpu-metrics"
+        interval = "30s"
+      }]
+    }
+  }
+  depends_on = [helm_release.prometheus_operator]
+}

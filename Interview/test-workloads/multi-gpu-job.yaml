@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: multi-gpu-job
+  name: multi-gpu-stress
 spec:
   completions: 1
   parallelism: 1
@@ -11,14 +11,30 @@ spec:
       nodeSelector:
         cloud.google.com/gke-accelerator: "nvidia-tesla-t4"
       containers:
-      - name: tensorflow-multi-gpu
+      - name: tensorflow-gpu-benchmark
         image: tensorflow/tensorflow:latest-gpu
         command: ["python", "-c"]
         args:
           - |
             import tensorflow as tf
+            import time
+            
             strategy = tf.distribute.MirroredStrategy()
             print(f"GPUs available: {strategy.num_replicas_in_sync}")
+
+            # Create large matrices for multiplication
+            size = 10000  # 10,000 x 10,000 matrix
+            a = tf.random.normal([size, size])
+            b = tf.random.normal([size, size])
+
+            print("Starting matrix multiplication benchmark...")
+            start_time = time.time()
+
+            for _ in range(100):  # Run multiple iterations
+                c = tf.matmul(a, b)
+
+            end_time = time.time()
+            print(f"Matrix multiplication complete in {end_time - start_time:.2f} seconds")
         resources:
           limits:
-            nvidia.com/gpu: 2  # Request 2 GPUs (1 per node)
+            nvidia.com/gpu: 2  # Use both GPUs
