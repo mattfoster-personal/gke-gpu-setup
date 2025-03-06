@@ -1,81 +1,117 @@
-# Pairing Exercise: Multi-Tenant GPU Workloads with Terraform
+# Fault Injection Scenarios for GPU Cluster Interview
 
-## Duration: 90-120 mins
-- GPU Node Validation & Cluster Readiness (15 mins)
-- Terraform: Extending Multi-Tenant Infrastructure (30-40 mins)
-- Deploying AI Workloads Across Multiple Tenants (20-30 mins)
-- Investigating & Fixing Security/Performance Issues (15-20 mins)
+## Overview
+This document outlines a set of fault injection scenarios designed to test a candidate’s ability to diagnose and resolve issues in a multi-tenant GPU-enabled Kubernetes cluster. Each scenario introduces a deliberate misconfiguration or failure that the candidate must identify and fix.
 
 ---
 
-## Provided Setup
-- GKE cluster with GPU-enabled nodes (pre-provisioned)
-- Terraform codebase defining the cluster and GPU node pools
-- Basic multi-tenant setup with namespaces, quotas, and RBAC
-- Pre-built AI workload container
-- Monitoring & logging (Observability)
+## 1️⃣ Workload Execution Failures
+
+### **Scenario 1: Architecture Mismatch**
+- **Issue:** A user submits a job that is built for `arm64`, but all nodes are `amd64`.
+- **Expected Failure:** The pod enters `CrashLoopBackOff` with `exec format error`.
+- **Candidate Task:**
+  1. Identify why the pod is failing (`kubectl logs` and `kubectl describe`).
+  2. Determine the correct architecture (`kubectl describe node`).
+  3. Modify the job spec to use a compatible image.
+
+### **Scenario 2: Missing GPU Resources**
+- **Issue:** A job requests GPUs, but the node it lands on does not have any.
+- **Expected Failure:** The pod remains in `Pending` state indefinitely.
+- **Candidate Task:**
+  1. Identify why the pod is stuck (`kubectl describe pod`).
+  2. Verify GPU node availability (`kubectl get nodes -o wide`).
+  3. Add appropriate `nodeSelector` or `resource requests`.
+
+### **Scenario 3: Insufficient GPU Memory**
+- **Issue:** A job requests 32GB of GPU memory, but the available GPUs only have 16GB.
+- **Expected Failure:** The job is scheduled but crashes due to OOM (Out of Memory).
+- **Candidate Task:**
+  1. Identify the failure (`kubectl logs`).
+  2. Check GPU memory constraints (`nvidia-smi`).
+  3. Adjust the job’s resource requests.
 
 ---
 
-## Part 1: GPU Node Validation & Cluster Readiness (15 mins)
-### Goal: Ensure the candidate understands GPU provisioning & cluster structure.
+## 2️⃣ Cluster Misconfigurations
 
-### Tasks:
-1. Check if GPU nodes are provisioned & labeled correctly (`kubectl get nodes -o wide`).
-2. Validate that NVIDIA drivers & GPU Operator are installed (`kubectl get pods -n gpu-operator`).
-3. Confirm that GPUs are discoverable (`kubectl describe node`, `nvidia-smi`).
-4. Explain how GPU auto-scaling works in GKE.
+### **Scenario 4: Broken RBAC**
+- **Issue:** A user from `tenant-a` can list pods in `tenant-b`.
+- **Expected Failure:** `kubectl get pods -n tenant-b` succeeds for `tenant-a`, violating isolation.
+- **Candidate Task:**
+  1. Inspect RBAC rules (`kubectl get rolebindings -n tenant-b`).
+  2. Identify why `tenant-a` has access.
+  3. Fix the RBAC misconfiguration using Terraform.
 
-### What We’re Looking For:
-- Can they correctly verify GPU availability?
-- Do they understand GPU node auto-provisioning?
-- Can they explain why GPU Operator is needed in GKE?
+### **Scenario 5: Incorrect GPU Quotas**
+- **Issue:** A tenant (`tenant-b`) is using more GPUs than allocated.
+- **Expected Failure:** GPU quota enforcement is not working.
+- **Candidate Task:**
+  1. Check the current resource quotas (`kubectl get resourcequotas -n tenant-b`).
+  2. Verify that GPU limits are enforced.
+  3. Modify the quota in Terraform to apply restrictions.
 
----
-
-## Part 2: Terraform - Extending Multi-Tenant Infrastructure (30-40 mins)
-### Goal: Ensure they can modify and apply Terraform configurations to improve multi-tenancy.
-
-### Tasks:
-1. Add a new tenant (`tenant-c`) using Terraform (namespace, quotas, RBAC).  
-2. Modify GPU quotas for `tenant-a` and `tenant-b` in Terraform (e.g., limit GPUs to 1 per tenant).  
-3. Apply Terraform changes and verify (`terraform apply` + `kubectl get namespaces, resourcequotas`).  
-4. Fix a misconfiguration: The Terraform file incorrectly allows `tenant-a` to access `tenant-b`'s pods.
-
-### What We’re Looking For:
-- Can they write and apply Terraform changes correctly?
-- Do they understand how to enforce GPU resource limits with Terraform?
-- Can they debug and fix misconfigurations in infrastructure code?
+### **Scenario 6: Node Selector Mismatch**
+- **Issue:** A workload specifies a node selector that does not match any available nodes.
+- **Expected Failure:** The job stays in `Pending` state indefinitely.
+- **Candidate Task:**
+  1. Investigate the pending pod (`kubectl describe pod`).
+  2. Check available node labels (`kubectl get nodes --show-labels`).
+  3. Update the job’s node selector to match a GPU node.
 
 ---
 
-## Part 3: Deploying AI Workloads Across Multiple Tenants (20-30 mins)
-### Goal: Ensure they can deploy AI workloads in isolated multi-tenant environments.
+## 3️⃣ Performance & Observability Issues
 
-### Tasks:
-1. Deploy AI inference jobs in `tenant-a` and `tenant-b`.  
-2. Ensure each workload only consumes the assigned GPU quota.  
-3. Verify that workloads are correctly isolated between tenants.  
-4. Observe resource utilization and explain GPU scheduling behavior.
+### **Scenario 7: GPU Underutilization**
+- **Issue:** A workload requests multiple GPUs, but utilization remains low.
+- **Expected Failure:** GPUs appear allocated but show near-zero utilization.
+- **Candidate Task:**
+  1. Check GPU utilization (`nvidia-smi` or Prometheus `DCGM_FI_DEV_GPU_UTIL`).
+  2. Investigate if the workload is running in CPU mode instead of GPU.
+  3. Modify the job spec to explicitly use GPU devices.
 
-### What We’re Looking For:
-- Can they correctly deploy GPU workloads per tenant?
-- Do they understand namespace-based GPU resource limitations?
-- Can they validate that tenants don’t interfere with each other?
+### **Scenario 8: Unbalanced Workload Distribution**
+- **Issue:** One node is fully utilized while another identical GPU node remains idle.
+- **Expected Failure:** Jobs do not get scheduled across nodes evenly.
+- **Candidate Task:**
+  1. Analyze pod distribution (`kubectl get pods -o wide`).
+  2. Investigate scheduling constraints (`kubectl describe node`).
+  3. Adjust workload parallelism or node affinity to improve bin-packing.
+
+### **Scenario 9: Broken Logging & Monitoring**
+- **Issue:** A workload is running but logs and metrics are missing from Prometheus/Grafana.
+- **Expected Failure:** No logs appear in `kubectl logs`, and GPU utilization is not recorded.
+- **Candidate Task:**
+  1. Investigate missing logs (`kubectl logs`, `kubectl get events`).
+  2. Verify Prometheus scraping configuration.
+  3. Fix missing annotations or exporters.
 
 ---
 
-## Part 4: Investigating & Fixing Security/Performance Issues (15-20 mins)
-### Goal: Evaluate problem-solving skills in a multi-tenant GPU cluster.
+## 4️⃣ Infrastructure as Code (Terraform) Challenges
 
-### Tasks:
-1. A user in `tenant-a` can list pods from `tenant-b`. Investigate why and fix it in Terraform.  
-2. A job in `tenant-b` is using more GPUs than allowed. Debug and fix the quota configuration.  
-3. Observability is broken for one tenant—fix missing logs and ensure per-tenant monitoring.
+### **Scenario 10: Firewall Rules Blocking Access**
+- **Issue:** A newly added tenant (`tenant-c`) cannot pull images or access external services.
+- **Expected Failure:** Pods fail due to networking errors (`ErrImagePull`, `Connection timeout`).
+- **Candidate Task:**
+  1. Check networking configuration (`kubectl describe pod`).
+  2. Identify missing firewall rules.
+  3. Modify Terraform to allow outbound access.
 
-### What We’re Looking For:
-- Can they properly lock down tenant boundaries with RBAC?
-- Do they understand GPU scheduling fairness across tenants?
-- Can they troubleshoot Terraform-based security misconfigurations?
+### **Scenario 11: Incorrect ClusterRoleBinding**
+- **Issue:** A service account does not have permissions to create GPU workloads.
+- **Expected Failure:** Job creation fails with `Forbidden` error.
+- **Candidate Task:**
+  1. Identify why the job cannot start (`kubectl describe job`).
+  2. Check service account permissions (`kubectl get clusterrolebindings`).
+  3. Fix the IAM role in Terraform.
 
-## Part 5: Debugging through observability - Prometheus (15-20 mins)
+---
+
+## How to Use These Scenarios
+- Faults should be injected **before the interview starts** so candidates walk into an already misconfigured environment.
+- Candidates should be expected to **diagnose and resolve** each issue using `kubectl`, Prometheus, and Terraform.
+- Interviewers should **take note of the debugging approach**, not just the final fix.
+
+---
