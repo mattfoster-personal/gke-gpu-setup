@@ -1,54 +1,65 @@
-apiVersion: batch/v1
-kind: Job
+apiVersion: kubeflow.org/v2beta1
+kind: MPIJob
 metadata:
-  name: multi-gpu-max
+  name: multi-gpu-mpi
 spec:
-  completions: 2
-  parallelism: 2 
-  template:
-    spec:
-      restartPolicy: Never
-      nodeSelector:
-        cloud.google.com/gke-accelerator: "nvidia-tesla-t4"
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: cloud.google.com/gke-accelerator
-                operator: In
-                values:
-                - "nvidia-tesla-t4"
-      containers:
-      - name: tensorflow-gpu-max-1
-        image: tensorflow/tensorflow:2.15.0-gpu
-        command: ["python", "-c"]
-        args:
-          - |
-            import tensorflow as tf
-            import time
+  slotsPerWorker: 1  # Each worker will use 1 GPU
+  runPolicy:
+    cleanPodPolicy: Running
+  mpiReplicaSpecs:
+    Launcher:
+      replicas: 1
+      template:
+        spec:
+          containers:
+            - name: mpi-launcher
+              image: tensorflow/tensorflow:latest-gpu
+              command: ["/usr/bin/mpirun"]
+              args:
+                - "-np"
+                - "2"  # Use 2 workers
+                - "--hostfile"
+                - "/etc/mpi/hostfile"
+                - "python3"
+                - "-c"
+                - |
+                  import tensorflow as tf
+                  import time
 
-            strategy = tf.distribute.MirroredStrategy()
-            print(f"GPUs available: {strategy.num_replicas_in_sync}")
+                  gpus = tf.config.list_physical_devices('GPU')
+                  if gpus:
+                      try:
+                          for gpu in gpus:
+                              tf.config.experimental.set_memory_growth(gpu, True)
+                          tf.config.set_visible_devices(gpus, 'GPU')
+                          print("Using GPUs:", gpus)
+                      except RuntimeError as e:
+                          print(e)
 
-            size = 25000  # 25,000 x 25,000 matrix
-            iterations = 750
+                  strategy = tf.distribute.MirroredStrategy()
+                  print(f"GPUs available: {strategy.num_replicas_in_sync}")
 
-            print(f"Starting {iterations} matrix multiplications of {size}x{size}...")
+                  # Heavy computation - Large matrix multiplication loop
+                  A = tf.random.normal([10000, 10000])
+                  B = tf.random.normal([10000, 10000])
 
-            a = tf.random.normal([size, size])
-            b = tf.random.normal([size, size])
+                  for i in range(500):  # Increase iterations to extend runtime
+                      C = tf.matmul(A, B)
+                      print(f"Iteration {i}: Computation completed")
 
-            start_time = time.time()
-            for i in range(iterations):
-                c = tf.matmul(a, b)
-                if i % 50 == 0:
-                    print(f"Iteration {i}/{iterations} complete...")
+                      if i % 50 == 0:
+                          print(f"Checkpoint at iteration {i}")
 
-            end_time = time.time()
-            print(f"Finished {iterations} iterations in {end_time - start_time:.2f} seconds")
-        resources:
-          limits:
-            nvidia.com/gpu: 2  # Each job uses 2 GPUs
+                      time.sleep(1)  # Simulate workload over time
 
-      
+                  print("Finished computation")
+    Worker:
+      replicas: 2  # 2 worker pods
+      template:
+        spec:
+          containers:
+            - name: mpi-worker
+              image: uber/horovod:latest
+              resources:
+                limits:
+                  nvidia.com/gpu: 1  # Each worker gets 1 GPU
