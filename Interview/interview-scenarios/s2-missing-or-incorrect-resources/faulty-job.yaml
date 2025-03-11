@@ -1,15 +1,24 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: gpu-oversubscribed-job
-  namespace: default
+  name: faulty-job
 spec:
   template:
+    metadata:
+      labels:
+        job: faulty-job
     spec:
       restartPolicy: Never
+      nodeSelector:
+        cloud.google.com/gke-accelerator: "nvidia-tesla-t4"
       containers:
-        - name: gpu-training
-          image: gcr.io/ai-research-e44f/training-image:latest
+        - name: gpu-test
+          image: pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
+          command: ["python3", "-c"]
+          args:
+            - |
+              import torch
+              print(f"GPU count: {torch.cuda.device_count()}")
           resources:
             limits:
-              nvidia.com/gpu: 4  # Requests more GPUs than available on a single node
+              nvidia.com/gpu: 4  # Requests more GPUs than available
