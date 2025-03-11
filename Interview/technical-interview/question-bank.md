@@ -188,22 +188,6 @@ How would you **optimize inference performance and cost**?
 
 ---
 
-## **Hybrid Cloud & On-Prem GPU Workloads**
-### **Question:**  
-Your company wants to **run GPU workloads across both on-prem and cloud** for cost efficiency.  
-How do you design an architecture that **seamlessly integrates both**?
-
-### **Discussion Points & Follow-Ups:**
-- How would you handle **data movement between on-prem and cloud GPUs**?
-- Would you use **Kubernetes Federation, Kubeflow, or custom job schedulers**?
-- How do you ensure **consistent GPU drivers & software environments**?
-- How do you minimize **latency** for cross-cloud GPU workloads?
-- What role do **containerization and orchestration** play in hybrid environments?
-- How do you balance **cloud burst capacity** with **on-prem reserved GPUs**?
-- What security considerations exist when **transferring workloads between cloud and on-prem?**
-
----
-
 ## **Future-Proofing a GPU Cluster**
 ### **Question:**  
 Your company expects **AI workloads to grow 10x** in the next three years.  
