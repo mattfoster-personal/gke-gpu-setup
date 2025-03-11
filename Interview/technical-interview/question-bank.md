@@ -138,6 +138,7 @@ How would you design the cluster to ensure **efficient GPU utilization, fair res
 - How do you handle **idle GPU resources**? (Preemption, job queuing)
 - What role does **RBAC** play in multi-tenant security?
 - How would you track **per-tenant usage** for billing or monitoring?
+- What tools or policies would you use to **prevent GPU resource hoarding**?
 
 ---
 
@@ -146,12 +147,28 @@ How would you design the cluster to ensure **efficient GPU utilization, fair res
 A new project suddenly requires **50% more GPUs than usual**, but your cluster has limited GPU nodes.  
 How do you **handle the surge** without impacting ongoing jobs?
 
+### **Discussion Points & Follow-Ups:**
+- How would you **scale up GPU capacity dynamically**? (Autoscaling, burst capacity)
+- What if you **can’t add more GPUs immediately**? (Preemption, prioritization)
+- Would you consider **spot/preemptible GPUs** to handle temporary demand?
+- How would you optimize existing workloads **to free up GPUs**?
+- How do you ensure a balance between **cost-effectiveness** and **performance needs**?
+- What impact does increased GPU demand have on **networking and storage bottlenecks**?
+
 ---
 
 ## **Fault Tolerance in a GPU Cluster**
 ### **Question:**  
 A **GPU node suddenly fails**, interrupting long-running model training jobs.  
 How would you design the system to **recover gracefully**?
+
+### **Discussion Points & Follow-Ups:**
+- How do you ensure **checkpointing & resumption** of workloads?
+- Would you use **distributed training** to prevent single-node failures?
+- How do you prevent **data loss** for jobs running on ephemeral nodes?
+- How do you diagnose GPU node failures quickly? (`node-exporter`, DCGM, Prometheus)
+- What strategies can **reduce downtime** for critical workloads?
+- How would you configure **Kubernetes scheduling** to automatically reschedule failed jobs?
 
 ---
 
@@ -160,12 +177,30 @@ How would you design the system to **recover gracefully**?
 You need to **deploy a deep learning model** serving real-time predictions to millions of users.  
 How would you **optimize inference performance and cost**?
 
+### **Discussion Points & Follow-Ups:**
+- What’s the best approach for **serving models at scale**? (TFServing, Triton, ONNX)
+- How do you handle **batching requests** to maximize GPU efficiency?
+- What’s the benefit of **FP16 vs FP32 precision** for inference workloads?
+- When would you use **CPU-based inference** instead of GPUs?
+- How do you decide between **on-prem GPUs vs cloud-based inference**?
+- How would you monitor **latency vs throughput trade-offs**?
+- What techniques improve **cold-start latency** for model inference?
+
 ---
 
 ## **Hybrid Cloud & On-Prem GPU Workloads**
 ### **Question:**  
 Your company wants to **run GPU workloads across both on-prem and cloud** for cost efficiency.  
 How do you design an architecture that **seamlessly integrates both**?
+
+### **Discussion Points & Follow-Ups:**
+- How would you handle **data movement between on-prem and cloud GPUs**?
+- Would you use **Kubernetes Federation, Kubeflow, or custom job schedulers**?
+- How do you ensure **consistent GPU drivers & software environments**?
+- How do you minimize **latency** for cross-cloud GPU workloads?
+- What role do **containerization and orchestration** play in hybrid environments?
+- How do you balance **cloud burst capacity** with **on-prem reserved GPUs**?
+- What security considerations exist when **transferring workloads between cloud and on-prem?**
 
 ---
 
@@ -174,6 +209,11 @@ How do you design an architecture that **seamlessly integrates both**?
 Your company expects **AI workloads to grow 10x** in the next three years.  
 How would you **design the GPU infrastructure** today to be scalable & future-proof?
 
----
-
-This structured markdown document ensures a **clear Table of Contents with jump links** for quick navigation during the interview. Let me know if you need any refinements.
+### **Discussion Points & Follow-Ups:**
+- What factors determine when to **scale out vs scale up** GPUs?
+- How do you **future-proof network bandwidth** for high-throughput AI?
+- How does **storage design impact large-scale training**? (e.g., NFS, Lustre, Ceph)
+- What role do **containerized ML workflows** play in long-term scalability?
+- How would you manage **multi-region GPU deployments**?
+- What considerations go into selecting **the next generation of GPUs**?
+- How do you ensure that **GPU scheduling policies** remain efficient as workloads grow?
