@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: image-push-job
+spec:
+  template:
+    spec:
+      serviceAccountName: gcr-pusher-sa
+      restartPolicy: Never
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:latest
+        args:
+          - "--context=dir:///workspace"
+          - "--dockerfile=/workspace/Dockerfile"
+          - "--destination=gcr.io/ai-research-e44f/test-push:latest"
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker
+          - name: workspace
+            mountPath: /workspace
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: gcr-json-key
+        - name: workspace
+          emptyDir: {}
