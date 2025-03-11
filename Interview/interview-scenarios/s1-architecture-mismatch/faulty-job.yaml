@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: faulty-training-job
+  namespace: default
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: training-container
+          image: gcr.io/ai-research-e44f/faulty-image:latest  # This image is built for ARM64
+          resources:
+            limits:
+              nvidia.com/gpu: 1  # Requests a GPU

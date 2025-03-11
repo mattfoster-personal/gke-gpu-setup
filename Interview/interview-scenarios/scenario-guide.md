@@ -5,7 +5,7 @@ This document outlines a set of fault injection scenarios designed to test a can
 
 ---
 
-## 1️⃣ Workload Execution Failures
+## 1️. Workload Execution Failures
 
 ### **Scenario 1: Architecture Mismatch**
 - **Issue:** A user submits a job that is built for `arm64`, but all nodes are `amd64`.
@@ -14,6 +14,7 @@ This document outlines a set of fault injection scenarios designed to test a can
   1. Identify why the pod is failing (`kubectl logs` and `kubectl describe`).
   2. Determine the correct architecture (`kubectl describe node`).
   3. Modify the job spec to use a compatible image.
+---
 
 ### **Scenario 2: Missing or Incorrect GPU Resources**
 - **Issue:** A job requests GPUs, but either:
@@ -24,6 +25,7 @@ This document outlines a set of fault injection scenarios designed to test a can
   1. Identify why the pod is stuck (`kubectl describe pod`).
   2. Verify GPU node availability (`kubectl get nodes -o wide`).
   3. Adjust nodeSelector, affinity, or resource requests to ensure correct scheduling.
+---
 
 ### **Scenario 3: Insufficient GPU Memory**
 - **Issue:** A job requests 32GB of GPU memory, but the available GPUs only have 16GB.
@@ -32,10 +34,9 @@ This document outlines a set of fault injection scenarios designed to test a can
   1. Identify the failure (`kubectl logs`).
   2. Check GPU memory constraints (`nvidia-smi`).
   3. Adjust the job’s resource requests.
-
 ---
 
-## 2️⃣ Performance & Observability Issues
+## 2️. Performance & Observability Issues
 
 ### **Scenario 4: GPU Underutilization (Forcing CPU Mode)**
 - **Issue:** A workload is expected to run on GPUs, but it defaults to CPU mode.
@@ -49,6 +50,7 @@ This document outlines a set of fault injection scenarios designed to test a can
 1. Check GPU utilization (`nvidia-smi` or Prometheus `DCGM_FI_DEV_GPU_UTIL`).
 2. Identify if the workload is running in CPU mode instead of GPU.
 3. Modify the job spec to explicitly use GPU devices.
+---
 
 ### **Scenario 5: Unbalanced Workload Distribution**
 - **Issue:** One node is fully utilized while another identical GPU node remains idle.
@@ -59,35 +61,39 @@ This document outlines a set of fault injection scenarios designed to test a can
   3. Adjust workload parallelism, node affinity, or MPI configuration.
 
   **Note:** We previously tried adjusting `parallelism` but were unsuccessful, which is why we explored **MPI for multi-node GPU workloads**. Candidates should discuss how `MPI` helps in workload distribution.
+---
 
-### **Scenario 6: Broken Logging & Monitoring**
+### Scenario 6: Inefficient GPU Utilization Due to Node Mismatch
+- **Issue:**
+A machine learning engineer submits a workload that is optimized for high-memory A100 GPUs, but the job is scheduled onto lower-memory T4 GPUs. This results in severely degraded performance and inefficient GPU usage.
+- **Expected Failure:**
+	•	The job runs, but much slower than expected.
+	•	GPU memory is exhausted, leading to frequent cache flushes and slower execution.
+	•	Resource utilization in Prometheus/Grafana appears inefficient.
+- **Candidate Task:**
+	1.	Diagnose the cause of poor GPU performance (kubectl describe pod, nvidia-smi, Prometheus metrics).
+	2.	Verify the workload’s GPU requirements (kubectl get pods -o yaml).
+	3.	Modify the workload’s node selection policy to ensure it runs on A100 nodes instead of T4 nodes.
+---
+
+### **Scenario 7: Broken Logging & Monitoring**
 - **Issue:** A workload is running, but logs and metrics are missing from Prometheus/Grafana.
 - **Expected Failure:** No logs appear in `kubectl logs`, and GPU utilization is not recorded.
 - **Candidate Task:**
   1. Investigate missing logs (`kubectl logs`, `kubectl get events`).
   2. Verify Prometheus scraping configuration.
   3. Fix missing annotations or exporters.
-
 ---
 
 ## 3️⃣ Infrastructure as Code (Terraform) Challenges
 
-### **Scenario 7: Firewall Rules Blocking Access**
-- **Issue:** A newly added tenant (`tenant-c`) cannot pull images or access external services.
-- **Expected Failure:** Pods fail due to networking errors (`ErrImagePull`, `Connection timeout`).
-- **Candidate Task:**
-  1. Check networking configuration (`kubectl describe pod`).
-  2. Identify missing firewall rules.
-  3. Modify Terraform to allow outbound access.
-
-### **Scenario 8: Incorrect ClusterRoleBinding**
+### **Scenario 8: Missing ClusterRoleBinding**
 - **Issue:** A service account does not have permissions to create GPU workloads.
 - **Expected Failure:** Job creation fails with `Forbidden` error.
 - **Candidate Task:**
   1. Identify why the job cannot start (`kubectl describe job`).
   2. Check service account permissions (`kubectl get clusterrolebindings`).
   3. Fix the IAM role in Terraform.
-
 ---
 
 ## How to Use These Scenarios

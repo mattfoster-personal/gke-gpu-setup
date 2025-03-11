@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: faulty-job
+  namespace: default
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: tensorflow-cpu-test
+          image: tensorflow/tensorflow:2.15.0-gpu  # GPU-enabled image
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+          command: ["python3", "-c"]
+          args:
+            - |
+              import tensorflow as tf
+              tf.config.set_visible_devices([], 'GPU')  # Forces CPU execution
+              print("Using devices:", tf.config.list_physical_devices())

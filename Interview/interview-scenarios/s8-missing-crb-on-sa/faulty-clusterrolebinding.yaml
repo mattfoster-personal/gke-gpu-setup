@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: faulty-gpu-job-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view  # Incorrect role, should be edit or a custom role with "create" permissions
+subjects:
+  - kind: ServiceAccount
+    name: gpu-job-sa
+    namespace: default

@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: faulty-job
+spec:
+  template:
+    metadata:
+      labels:
+        job: faulty-job
+    spec:
+      restartPolicy: Never
+      serviceAccountName: gpu-job-sa  # Uses the faulty service account
+      nodeSelector:
+        cloud.google.com/gke-accelerator: "nvidia-tesla-t4"
+      containers:
+        - name: gpu-test
+          image: nvidia/cuda:12.1.0-base-ubuntu22.04
+          command: ["python3", "-c"]
+          args:
+            - |
+              import torch
+              print(torch.cuda.is_available())
+          resources:
+            limits:
+              nvidia.com/gpu: 1

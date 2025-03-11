@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: faulty-job
+  namespace: default
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: gpu-memory-test
+          image: pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
+          resources:
+            limits:
+              nvidia.com/gpu: 1  # Requests 1 GPU, but memory usage exceeds available per GPU
+          command: ["python3", "-c", "import torch; [torch.randn(4096, 4096, device='cuda') for _ in range(500)]"]

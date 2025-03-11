@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: faulty-job
+spec:
+  template:
+    metadata:
+      labels:
+        job: faulty-job
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        cloud.google.com/gke-accelerator: "nvidia-tesla-t4"  # Wrong GPU type, should be A100
+      containers:
+        - name: gpu-workload
+          image: nvidia/cuda:12.1.0-devel-ubuntu22.04
+          command: ["python3", "-c"]
+          args:
+            - |
+              import torch
+              import time
+              device = torch.device("cuda:0")
+              x = torch.randn(10000, 10000, device=device)
+              for _ in range(100):  # Simulate computation
+                  x = torch.matmul(x, x)
+                  time.sleep(1)  # Artificial delay
+          resources:
+            limits:
+              nvidia.com/gpu: 1  # Requests a single GPU

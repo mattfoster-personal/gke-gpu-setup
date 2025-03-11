@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: faulty-job
+  namespace: default
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: gpu-test-container
+          image: tensorflow/tensorflow:2.15.0-gpu
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+          command: ["python3", "-c"]
+          args:
+            - |
+              import torch
+              print("Starting GPU workload...")
+              print(f"Running on device: {torch.cuda.get_device_name(0)}")
+              # Simulate workload
+              import time; time.sleep(60)
