@@ -24,20 +24,20 @@ The candidate should:
 
 ## **Expected Debugging Process**
 1. **Check pod status**
-\```
+```
 kubectl get pods -n default
-\```
+```
 
 2️. **Describe the pod to see scheduling issues**
-\```
+```
 kubectl describe pod faulty-job-xyz -n default
-\```
+```
 **Key indicator:** `Insufficient nvidia.com/gpu`
 
 3️. **Check available GPUs per node**
-\```
-kubectl get nodes -o=custom-columns=NAME:.metadata.name,GPU:.status.allocatable.nvidia\.com/gpu
-\```
+```
+kubectl get nodes -o=custom-columns=NAME:.metadata.name,GPU:.status.allocatable.nvidia.com/gpu
+```
 **Key indicator:** No node has 4 GPUs.
 
 ---
@@ -47,20 +47,20 @@ To resolve this:
 1. **Modify the job's resource request** to fit within available GPUs per node.
 
 Edit `faulty-job.yaml`:
-\```yaml
+```yaml
 resources:
   limits:
     nvidia.com/gpu: 2  # Adjusted to fit the available GPUs
-\```
+```
 
 Apply the fix:
-\```
+```
 kubectl apply -f faulty-job.yaml
-\```
+```
 2. **Confirm the job now schedules successfully**
-\```
+```
 kubectl get pods -n default
-\```
+```
 The pod should move from `Pending` → `Running`.
 
 ---

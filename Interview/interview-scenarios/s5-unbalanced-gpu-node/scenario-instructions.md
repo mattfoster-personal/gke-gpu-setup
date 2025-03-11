@@ -24,21 +24,21 @@ The candidate should:
 
 ## **Expected Debugging Process**
 1️. **Check the node assignment**
-\```
+```
 kubectl get pods -o wide -n default
-\```
+```
 **Key indicator:** All jobs run on the same node.
 
 2️. **Verify GPU utilization per node**
-\```
+```
 kubectl top nodes | grep gke
-\```
+```
 **Key indicator:** One node is fully utilized, while others are idle.
 
 3️. **Check the scheduling constraints**
-\```
+```
 kubectl describe pod faulty-job-xyz -n default | grep "Node:"
-\```
+```
 **Key indicator:** Node assignment is restricted to a single node.
 
 ---
@@ -47,16 +47,16 @@ kubectl describe pod faulty-job-xyz -n default | grep "Node:"
 The fix is to **remove the restrictive nodeSelector** leaving just the t4 node selector so the Kubernetes scheduler can distribute workloads evenly.
 
 Edit `faulty-job.yaml`:
-\```yaml
+```yaml
       # Remove this line to allow the default scheduler to distribute jobs evenly
       # nodeSelector:
       #   kubernetes.io/hostname: faulty-gpu-node  
-\```
+```
 
 Apply the fix:
-\```
+```
 kubectl apply -f faulty-job.yaml
-\```
+```
 
 ---
 

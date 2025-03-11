@@ -17,52 +17,52 @@ The following YAML file (`faulty-job.yaml`) creates a **GPU-enabled training job
 
 Apply the YAML file to the cluster: 
 
-\```
+```
 kubectl apply -f faulty-job.yaml
-\```
+```
 
 ---
 
 ## **Step 2: Verify the Fault**
 After applying the deployment, check if the pod enters `CrashLoopBackOff`:
 
-\```
+```
 kubectl get pods -n default
-\```
+```
 
 Expected output:
-\```
+```
 NAME                            READY   STATUS             RESTARTS   AGE
 faulty-job-abc123      0/1     CrashLoopBackOff   5          2m
-\```
+```
 
 To confirm the error:
 
-\```
+```
 kubectl logs faulty-job-abc123
-\```
+```
 
 Expected output:
-\```
+```
 standard_init_linux.go:219: exec user process caused: exec format error
-\```
+```
 
 ---
 
 ## **Step 3: Inspect the Image Architecture**
 To verify that the issue is due to an incompatible architecture, check the container image:
 
-\```
+```
 crane manifest gcr.io/ai-research-e44f/faulty-image:latest | jq '.manifests[].platform'
-\```
+```
 
 Expected output:
-\```json
+```json
 {
   "architecture": "arm64",
   "os": "linux"
 }
-\```
+```
 
 This confirms that the **faulty image is built for ARM64**, while the **cluster nodes are AMD64**.
 
@@ -81,9 +81,9 @@ Once the scenario is set up:
 ## **Tearing Down the Scenario**
 To reset the cluster after the interview:
 
-\```
+```
 kubectl delete job faulty-job -n default
-\```
+```
 
 This ensures a clean state before running another fault injection scenario.
 

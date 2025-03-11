@@ -23,21 +23,21 @@ The candidate should:
 
 ## **Expected Debugging Process**
 1️. **Check if the container outputs logs to stdout/stderr**
-\```
+```
 kubectl logs -n default faulty-job-xyz
-\```
+```
 **Key indicator:** No logs appear.
 
 2️. **Confirm logging driver settings**
-\```
+```
 kubectl describe pod faulty-job-xyz | grep log
-\```
+```
 **Key indicator:** Logs are not being collected.
 
 3️. **Verify Prometheus annotations**
-\```
+```
 kubectl describe pod faulty-job-xyz | grep annotations
-\```
+```
 **Key indicator:** **No `prometheus.io/scrape` annotations**.
 
 ---
@@ -46,7 +46,7 @@ kubectl describe pod faulty-job-xyz | grep annotations
 ### **1️. Enable Logging**
 Modify `faulty-job.yaml` to ensure logs are written to stdout:
 
-\```yaml
+```yaml
           args:
             - |
               import torch
@@ -56,31 +56,31 @@ Modify `faulty-job.yaml` to ensure logs are written to stdout:
               for i in range(10):
                   print(f"Step {i+1} completed")
                   time.sleep(5)  # Simulated workload
-\```
+```
 
 Apply the fix:
 
-\```
+```
 kubectl apply -f faulty-job.yaml
-\```
+```
 
 ---
 
 ### **2️. Enable Prometheus Monitoring**
 Modify `faulty-job.yaml` to include Prometheus annotations:
 
-\```yaml
+```yaml
 metadata:
   annotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "9100"
-\```
+```
 
 Apply the fix:
 
-\```
+```
 kubectl apply -f faulty-job.yaml
-\```
+```
 
 ---
 

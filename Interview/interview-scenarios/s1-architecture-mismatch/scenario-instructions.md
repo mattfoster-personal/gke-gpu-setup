@@ -70,17 +70,17 @@ The candidate should work through the following steps:
 
 ## **Candidate’s Solution**
 ### **Step 4: Find the Correct Image**
-   - Since the node is \`amd64\`, we need to use an \`amd64\`-compatible image.
+   - Since the node is `amd64`, we need to use an `amd64`-compatible image.
    - **Correct Image:**
      ```sh
      crane manifest python:3.9-slim | jq '.architecture'
      ```
-     - Expected Output: \`"amd64"\`
+     - Expected Output: `"amd64"`
 
 ---
 
 ### **Step 5: Update the Kubernetes Job**
-   - Modify the job spec (\`kubectl edit job faulty-job\`):
+   - Modify the job spec (`kubectl edit job faulty-job`):
      ```yaml
      spec:
        template:

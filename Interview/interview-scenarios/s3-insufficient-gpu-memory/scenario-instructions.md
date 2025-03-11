@@ -24,20 +24,20 @@ The candidate should:
 
 ## **Expected Debugging Process**
 1️. **Check pod status**
-\```
+```
 kubectl get pods -n default
-\```
+```
 
 2️. **Retrieve pod logs to confirm the OOM error**
-\```
+```
 kubectl logs faulty-job-xyz -n default
-\```
+```
 **Key indicator:** `RuntimeError: CUDA out of memory`
 
 3️. **Check available GPU memory**
-\```
+```
 kubectl exec -it faulty-job-xyz -- nvidia-smi
-\```
+```
 **Key indicator:** GPU is fully allocated.
 
 ---
@@ -47,19 +47,19 @@ To resolve this:
 1. **Reduce the batch size** to lower memory usage.
 
 Edit `faulty-job.yaml`:
-\```yaml
+```yaml
 command: ["python3", "/app/train_imdb_bert.py", "--batch_size", "64"]
-\```
+```
 
 Apply the fix:
-\```
+```
 kubectl apply -f faulty-job.yaml
-\```
+```
 
 2. **Confirm the job now runs successfully**
-\```
+```
 kubectl get pods -n default
-\```
+```
 The pod should move from `Error` → `Running`.
 
 ---

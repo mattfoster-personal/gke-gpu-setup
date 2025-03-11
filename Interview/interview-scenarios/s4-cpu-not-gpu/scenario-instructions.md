@@ -23,21 +23,21 @@ The candidate should:
 
 ## **Expected Debugging Process**
 1️. **Verify that a GPU is allocated**
-\```
+```
 kubectl describe pod faulty-job-xyz -n default | grep "nvidia.com/gpu"
-\```
+```
 **Key indicator:** The GPU is assigned, but usage is 0%.
 
 2️. **Check TensorFlow's device list**
-\```
+```
 kubectl logs faulty-job-xyz | grep "Using devices"
-\```
+```
 **Key indicator:** `Using devices: []` (No GPUs detected).
 
 3️. **Manually list available GPUs**
-\```
+```
 kubectl exec -it faulty-job-xyz -- python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
-\```
+```
 **Key indicator:** `[]` (No GPUs available).
 
 ---
@@ -46,17 +46,17 @@ kubectl exec -it faulty-job-xyz -- python3 -c "import tensorflow as tf; print(tf
 To fix the issue, **remove the line that disables GPU execution**.
 
 Edit `faulty-job.yaml`:
-\```yaml
+```yaml
 args:
   - |
     import tensorflow as tf
     print("Using devices:", tf.config.list_physical_devices('GPU'))
-\```
+```
 
 Apply the fix:
-\```
+```
 kubectl apply -f faulty-job.yaml
-\```
+```
 
 ---
 
