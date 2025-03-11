@@ -85,7 +85,7 @@ A machine learning engineer submits a workload that is optimized for high-memory
   3. Fix missing annotations or exporters.
 ---
 
-## 3️⃣ Infrastructure as Code (Terraform) Challenges
+## 3️. Infrastructure as Code (Terraform) Challenges
 
 ### **Scenario 8: Missing ClusterRoleBinding**
 - **Issue:** A service account does not have permissions to create GPU workloads.
