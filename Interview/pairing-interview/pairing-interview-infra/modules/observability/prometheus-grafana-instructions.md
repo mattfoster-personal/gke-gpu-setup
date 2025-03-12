@@ -16,7 +16,7 @@ kubectl port-forward -n observability svc/prometheus-grafana 3000:80
     - Add a new data source:
     - Choose Prometheus.
     - Set the URL to: ```
-http://prometheus-server.observability.svc.cluster.local```
+http://prometheus-kube-prometheus-prometheus.observability:9090/```
     - 	Click Save & Test.
 
 
