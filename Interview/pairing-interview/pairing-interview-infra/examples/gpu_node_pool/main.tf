@@ -1,5 +1,5 @@
 module "gke_cluster" {
-  source       = "../../Interview/modules/cluster"
+  source       = "../../modules/cluster"
   cluster_name = "demo-cluster3"
   region       = "southamerica-east1-c"
   #project_id   = "gothic-province-450601-c2"
@@ -9,12 +9,12 @@ module "gke_cluster" {
 }
 
 module "gke_network" {
-  source = "../../Interview/modules/network"
+  source = "../../modules/network"
   location = "southamerica-east1-c"
 }
 
 module "gpu_operator" {
-  source = "../../Interview/modules/gpu-operator"
+  source = "../../modules/gpu-operator"
   cluster_endpoint       = module.gke_cluster.cluster_endpoint
   cluster_ca_certificate = module.gke_cluster.cluster_ca_certificate
   cluster_dependency = module.gke_cluster.cluster_resource
@@ -23,7 +23,7 @@ module "gpu_operator" {
 }
 
 module "gpu_node_pool" {
-  source         = "../../Interview/modules/gpu_node_pool"
+  source         = "../../modules/gpu-node-pool"
   cluster_dependency = module.gke_cluster.cluster_resource
   node_pool_name = "gpu-node-pool-test1"
   cluster_name  = var.cluster_name  # Pass the cluster name
@@ -44,7 +44,7 @@ module "gpu_node_pool" {
 }
 
 module "observability" {
-  source = "../../Interview/modules/observability"
+  source = "../../modules/observability"
   cluster_endpoint       = module.gke_cluster.cluster_endpoint
   cluster_ca_certificate = module.gke_cluster.cluster_ca_certificate
   monitoring_namespace      = "observability"

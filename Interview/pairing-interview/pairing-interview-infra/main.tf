@@ -8,7 +8,7 @@ terraform {
 }
 
 module "gpu_operator" {
-  source = "./modules/gpu_operator"
+  source = "../modules/gpu-operator"
   cluster_endpoint       = module.gke_cluster.endpoint
   cluster_ca_certificate = module.gke_cluster.cluster_ca_certificate
   # node_pool_name         = module.gpu_node_pool.gpu_pool.name
@@ -23,7 +23,7 @@ provider "google" {
 }
 
 module "gke_cluster" {
-  source   = "./modules/cluster"
+  source   = "../modules/cluster"
   cluster_name = "demo-cluster3"
  # project_id   = "gothic-province-450601-c2"
   project_id   = "ai-research-e44f"
@@ -32,7 +32,7 @@ module "gke_cluster" {
 
 module "gpu_node_pool" {
   node_count   = var.node_count
-  source             = "./modules/gpu_node_pool"
+  source             = "../modules/gpu_node_pool"
   cluster_name       = module.gke_cluster.cluster_name
   node_pool_name     = "gpu-node-pool-test1"
   cluster_dependency = module.gke_cluster

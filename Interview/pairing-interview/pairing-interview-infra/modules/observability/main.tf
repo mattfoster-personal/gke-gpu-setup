@@ -1,4 +1,4 @@
-resource "helm_release" "prometheus_operator" {
+resource "helm_release" "prometheus" {
   name       = "prometheus"
   namespace  = var.monitoring_namespace
   chart      = "kube-prometheus-stack"
@@ -58,5 +58,31 @@ resource "kubernetes_manifest" "dcgm_servicemonitor" {
       }]
     }
   }
-  depends_on = [helm_release.prometheus_operator]
+  depends_on = [helm_release.prometheus]
+}
+
+resource "kubernetes_service" "grafana" {
+  metadata {
+    name      = "prometheus-grafana"
+    namespace = "observability"  # Adjust based on your namespace
+  }
+
+  spec {
+    selector = {
+      "app.kubernetes.io/name"     = "grafana"
+      "app.kubernetes.io/instance" = "prometheus"
+    }
+
+    port {
+      port        = 80      # External LB Port
+      target_port = 3000    # Grafana's Internal Port
+    }
+
+    type = "LoadBalancer"
+  }
+}
+
+resource "google_compute_address" "grafana_static_ip" {
+  name   = "grafana-static-ip"
+  region = "southamerica-east1-c"  # Change to match your GKE region
 }

@@ -1,18 +1,19 @@
 ## To view Grafana using Prometheus metrics you need to
 
-1. Find the Grafana service on the cluster using a tool like k9s.
-
-2. Forward a port on the service to allow you to access. Use k9s for this or run the command:
-
+1. Run: 
 ```
-kubectl port-forward -n observability svc/prometheus-grafana 3000:80
+kubectl get svc -n observability
+kubectl describe svc grafana -n observability
 ```
 
-3. Go to localhost:3000 and use the login credentials:
+2. Obtain the external ip address for prometheus-grafana pod and put it into your browser
+
+
+3. At login use credentials:
 	- Username: admin
 	- Password: Message Matt For Password
 
-4.	Navigate to Configuration → Data Sources.
+4.	If there is no Prometheus data source -> Navigate to Configuration → Data Sources.
     - Add a new data source:
     - Choose Prometheus.
     - Set the URL to: ```
