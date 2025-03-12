@@ -20,24 +20,13 @@ http://prometheus-kube-prometheus-prometheus.observability:9090/```
     - 	Click Save & Test.
 
 
-## Creating a Custom Dashboard
+## Recreating the GPU-Dashboard
 
-1. Click the **“+”** icon on the left sidebar.
-2. Select **“Dashboard”** → Click **“Add a new panel”**.
-3. In the **Query Section**, select `Prometheus` as the data source.
-4. Use one of the following example queries to monitor GPU usage:
-   - **GPU Utilization**
-     \```promql
-     DCGM_FI_DEV_GPU_UTIL{instance=~".*"}
-     \```
-   - **Memory Utilization**
-     \```promql
-     DCGM_FI_DEV_FB_USED{instance=~".*"} / DCGM_FI_DEV_FB_TOTAL{instance=~".*"} * 100
-     \```
-   - **Active Processes on GPUs**
-     \```promql
-     DCGM_FI_DEV_PROCESS_COUNT
-     \```
-5. Click **Save**, provide a name, and assign it to a folder.
+*** This is temporary while I automate the provisioning of Grafana ***
 
-Now, your dashboard should be live and showing GPU utilization metrics. 🚀
+1. Go to the ```dashboards``` subdirectory
+  - Open ```gpu-dashboard.yaml```
+  - Copy the yaml to clipboard
+2. Go to Grafana -> Dashboards -> Dashboard Settings -> Json Model
+  - Paste the yaml file into the textbox
+  - Save changes
