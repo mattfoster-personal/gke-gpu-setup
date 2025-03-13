@@ -64,7 +64,7 @@ resource "kubernetes_manifest" "dcgm_servicemonitor" {
 resource "kubernetes_service" "grafana" {
   metadata {
     name      = "prometheus-grafana"
-    namespace = "observability"  # Adjust based on your namespace
+    namespace = "observability"  # Adjust based on namespace
   }
 
   spec {
@@ -78,11 +78,13 @@ resource "kubernetes_service" "grafana" {
       target_port = 3000    # Grafana's Internal Port
     }
 
+    load_balancer_ip = google_compute_address.grafana_static_ip.address
     type = "LoadBalancer"
   }
 }
 
 resource "google_compute_address" "grafana_static_ip" {
   name   = "grafana-static-ip"
-  region = "southamerica-east1-c"  # Change to match your GKE region
+  region = "southamerica-east1"  # Change to match GKE region
+  project = "ai-research-e44f"
 }

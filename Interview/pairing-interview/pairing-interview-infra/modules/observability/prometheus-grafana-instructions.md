@@ -1,6 +1,6 @@
 ## To view Grafana using Prometheus metrics you need to
 
-1. Run: 
+1. The ip ```34.151.254.75``` should be static but just to check, run: 
 ```
 kubectl get svc -n observability
 kubectl describe svc grafana -n observability
