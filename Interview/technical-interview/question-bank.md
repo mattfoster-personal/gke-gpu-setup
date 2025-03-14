@@ -18,6 +18,164 @@
 
 ---
 
+# **Large-Scale Cluster Management & Scaling**
+
+## **1. How do you ensure that a Kubernetes GPU cluster can scale dynamically while maintaining workload reliability?**
+- **Expected Answer:**
+  - **Autoscaling strategies**:
+    - **Cluster Autoscaler** (adjusts node pools based on pod requests)
+    - **Horizontal Pod Autoscaler (HPA)** (scales workloads based on CPU/GPU utilization)
+    - **Vertical Pod Autoscaler (VPA)** (optimizes individual pod resources)
+  - **Preemptible/Spot GPUs**: Handling workloads that can tolerate interruptions.
+  - **Priority Classes & Preemption**: Ensuring critical workloads get resources first.
+  - **Scaling GPU nodes vs CPU nodes differently**: Some workloads might be CPU-intensive even in GPU-heavy clusters.
+
+- **Follow-ups:**
+  - How would you prevent the **Cluster Autoscaler from removing GPU nodes during maintenance events**?
+  - What trade-offs exist between **Cluster Autoscaler and HPA/VPA**?
+  - How do you design an **autoscaling strategy for burst workloads**?
+
+- **Hints if struggling:**  
+  - "How does Kubernetes know when to scale GPU nodes up or down?"
+  - "How do you prevent important jobs from being evicted?"
+
+---
+
+## **2. How do you balance cost and performance when running large-scale GPU workloads?**
+- **Expected Answer:**
+  - **Mix of on-demand and preemptible GPUs**:
+    - Use **on-demand GPUs** for critical workloads.
+    - Use **preemptible/spot GPUs** for batch processing.
+  - **Efficient resource utilization**:
+    - **Bin packing strategies** to avoid GPU fragmentation.
+    - Using **Multi-Instance GPU (MIG)** for partitioning large GPUs.
+  - **Profiling and cost monitoring**:
+    - Use **`nvidia-smi`**, **DCGM**, and **Prometheus/Grafana** for monitoring utilization.
+    - Identify underutilized GPUs and optimize scheduling.
+
+- **Follow-ups:**
+  - What strategies can reduce idle GPU costs?
+  - How would you prioritize high-value workloads over low-priority workloads?
+  - What trade-offs exist between **buying more GPUs** vs **optimizing scheduling**?
+
+- **Hints if struggling:**  
+  - "How can you make better use of preemptible instances?"
+  - "What tools help analyze GPU utilization?"
+
+---
+
+## **3. How do you configure and optimize Multi-Instance GPU (MIG) in Kubernetes?**
+- **Expected Answer:**
+  - **Enabling MIG Mode**:
+    - Configure MIG at the driver level (`nvidia-smi -mig 1`).
+    - Assign MIG profiles (`nvidia-smi mig -cgi`).
+  - **Kubernetes Integration**:
+    - Use **NVIDIA GPU Operator** to expose MIG instances.
+    - Modify **`device-plugin`** configuration for MIG profiles.
+  - **Optimizing MIG usage**:
+    - Assign small workloads to **MIG slices**.
+    - Ensure **GPU memory allocation** matches workload needs.
+
+- **Follow-ups:**
+  - How do you expose MIG slices as Kubernetes resources?
+  - What workloads benefit most from MIG?
+  - How does MIG impact GPU scheduling and isolation?
+
+- **Hints if struggling:**  
+  - "How do you allocate a single A100 to multiple users?"
+  - "What trade-offs exist between using MIG vs full GPU access?"
+
+---
+
+## **4. How do you allocate contiguous GPUs for optimizing distributed training?**
+- **Expected Answer:**
+  - **Affinity-based scheduling**:
+    - Use **Pod Affinity/Anti-Affinity** to schedule jobs on adjacent GPUs.
+    - Configure **`topologyManager`** to prefer socket-aligned allocations.
+  - **Networking considerations**:
+    - Optimize **NVIDIA NVLink topology** for better inter-GPU communication.
+    - Use **RDMA/Infiniband** for high-speed interconnects.
+  - **Framework-specific optimizations**:
+    - Use **PyTorch Distributed Data Parallel (DDP)** or **TensorFlow MirroredStrategy**.
+    - Profile inter-GPU communication with **`nsys`** and **`nvidia-smi topo`**.
+
+- **Follow-ups:**
+  - How do you ensure GPUs allocated to a job are on the same NUMA node?
+  - How does NVLink improve performance over PCIe?
+  - When would you need to use a dedicated GPU interconnect?
+
+- **Hints if struggling:**  
+  - "How do you ensure all GPUs assigned to a pod are on the same physical node?"
+  - "What’s the role of NUMA awareness in GPU scheduling?"
+
+---
+
+## **5. What cluster changes can be done without causing Kubernetes to tear down the entire cluster?**
+- **Expected Answer:**
+  - **Scaling up/down nodes**: Adjusting **node pools** without impacting workloads.
+  - **Adding/removing node pools**: Dynamically modifying GPU availability.
+  - **Upgrading GPU drivers & CUDA versions**: With **rolling updates**.
+  - **Modifying Kubernetes deployments**:
+    - Changing **replica counts**.
+    - Updating **container images**.
+  - **Storage-related changes**:
+    - Expanding PersistentVolumes without downtime.
+
+- **Follow-ups:**
+  - What cluster modifications require a **full rebuild**?
+  - How do you upgrade Kubernetes **without downtime**?
+  - What role does **Terraform apply behavior** play in cluster stability?
+
+- **Hints if struggling:**  
+  - "What changes are safe in a production GPU cluster?"
+  - "When do you need a rolling update vs recreating resources?"
+
+---
+
+## **6. How do you set up and manage different networking types in a GPU cluster?**
+- **Expected Answer:**
+  - **Control Plane Networking**:
+    - Ensures Kubernetes API communication.
+    - Uses **private clusters** to restrict access.
+  - **Interconnect/Infiniband**:
+    - Used for **distributed ML training** to enable fast GPU-to-GPU transfers.
+  - **Service Mesh (Istio/Linkerd)**:
+    - Adds observability, security, and traffic control.
+  - **Load Balancing**:
+    - Configuring **Ingress controllers** for model serving.
+
+- **Follow-ups:**
+  - What’s the role of **RDMA networking** in ML training?
+  - When would you prefer **Pod IP-based networking vs Service Mesh**?
+  - How do you diagnose **network bottlenecks** affecting GPU workloads?
+
+- **Hints if struggling:**  
+  - "How does networking impact multi-node ML training?"
+  - "What’s the advantage of Infiniband over traditional Ethernet?"
+
+---
+
+## **7. What metrics are most important when monitoring a GPU cluster?**
+- **Expected Answer:**
+  - **GPU Utilization Metrics**:
+    - **`DCGM_FI_DEV_GPU_UTIL`** → GPU load.
+    - **`DCGM_FI_DEV_FB_USED`** → Memory usage.
+  - **CPU-to-GPU Bottlenecks**:
+    - Check **CPU utilization** to ensure data feeding isn’t slow.
+  - **Networking Performance**:
+    - Measure **inter-GPU communication latency**.
+  - **Disk I/O & Storage Throughput**:
+    - Monitor **PVC read/write speeds** for dataset loading.
+
+- **Follow-ups:**
+  - How would you detect and fix **GPU memory fragmentation**?
+  - What’s the correlation between **GPU and network utilization**?
+  - How do you track GPU health to predict failures?
+
+- **Hints if struggling:**  
+  - "How do you measure whether GPUs are fully utilized?"
+  - "What external factors can impact GPU workload performance?"
+
 ## **GPU Resource Allocation & Scheduling**
 
 ### **How does Kubernetes schedule workloads on GPU nodes?**
@@ -201,3 +359,13 @@ How would you **design the GPU infrastructure** today to be scalable & future-pr
 - How would you manage **multi-region GPU deployments**?
 - What considerations go into selecting **the next generation of GPUs**?
 - How do you ensure that **GPU scheduling policies** remain efficient as workloads grow?
+
+## Carl Questions:
+
+- how do you set up MIG configuration in K8s, or is that something that gets configured at a level lower than K8s?
+- how do you allocate contiguous GPUs for optimizing training? How do you allocate workloads to contiguous GPUs?
+- how do you set up the different networks (interconnect, infiniband, control plane, etc)
+- What metrics are most important in monitoring the health of the cluster?  When troubleshooting, what correlations do you - look for between different metrics? (ie. CPU / GPU, GPU / interconnect / network, etc)
+- Probably don't need to test on inference questions at this point in time, unless there's extra time left in the interview
+- What kinds of cluster changes can be done without causing K8s to tear down the whole cluster and rebuild? (probably a terraform question)
+- What IaC tooling do you prefer and why? (ie. terraform, pulumi, gcloud, etc)
